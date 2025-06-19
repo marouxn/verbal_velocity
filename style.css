@@ -1,5 +1,106 @@
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Minimum height of viewport */
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px; /* Add some padding around the edges */
+    box-sizing: border-box; /* Include padding in element's total width/height */
+}
+
+/* Main game container */
+#game-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 650px; /* Max width for the entire game area */
+    box-sizing: border-box; /* Include padding in element's total width/height */
+}
+
+/* Styles for the main title */
 h1 {
     text-align: center;
-    color: #333; /* A dark gray color */
-    font-family: Arial, sans-serif; /* A common, readable font */
+    color: #333;
+    margin-bottom: 25px; /* More space below title */
+    font-size: 2.5em; /* Larger title */
+}
+
+/* Styles for the score and time container */
+#score-time-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px auto 25px auto; /* More space below it */
+    width: 80%;
+    max-width: 600px; /* Match word-display max-width for alignment */
+    font-weight: bold;
+    font-size: 1.1em;
+    gap: 20px; /* Space between score and timer */
+}
+
+#score-display, #timer-display {
+    flex: 1; /* Allows them to grow and shrink equally */
+    padding: 10px 15px; /* More padding */
+    background-color: #e2e2e2;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* MODIFIED: Styles for the combined word display area */
+#word-display {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 25px;
+    margin: 20px auto;
+    font-size: 2.2em;
+    text-align: left; /* Align text to the left now that it's a sentence */
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    min-height: 2.5em; /* Enough space for current + some upcoming */
+    line-height: 1.4; /* Improve readability for multiple words */
+    white-space: normal; /* Allow text to wrap naturally */
+    overflow-wrap: break-word; /* Break long words if necessary */
+}
+
+/* NEW: Style for the current word being typed */
+.highlight {
+    color: #007bff; /* A prominent color for the current word */
+    font-weight: bold;
+}
+
+/* Styles for the text input field */
+#text-input {
+    display: block;
+    width: 80%;
+    max-width: 580px;
+    padding: 18px;
+    margin: 25px auto;
+    font-size: 1.6em;
+    border: 2px solid #555;
+    border-radius: 5px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#text-input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Styles for the feedback message area */
+#feedback-message {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 1.3em;
+    font-weight: bold;
+    min-height: 1.5em;
+    color: #555;
+    padding-bottom: 15px;
 }
