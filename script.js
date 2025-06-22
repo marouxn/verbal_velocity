@@ -2,28 +2,31 @@
 const wordDisplay = document.getElementById('word-display');
 const textInput = document.getElementById('text-input');
 const feedbackMessage = document.getElementById('feedback-message');
-const scoreDisplay = document.getElementById('score-display');
+const scoreDisplay = document.getElementById('score-display'); // Renamed HTML element to score-display (as before)
 const timerDisplay = document.getElementById('timer-display');
 
 
-// Array of words for the game
+// Array of words for the game (YOUR EXPANDED LIST)
 const words = [
     "the", "it", "at", "when", "how", "what", "said", "day", "stop", "like",
     "father", "fish", "be", "to", "and", "that", "not", "under", "move",
     "develop", "start", "top", "a", "light", "hold", "stand", "send",
     "believe", "create"
+    // Add all your additional words here!
 ];
 
 let currentWord = '';
-let score = 0;
-let timeLeft = 30;
+let rawTypedCharacters = 0; // NEW: Total valid keystrokes made
+let correctLetters = 0; // Total perfectly correct characters (for accuracy)
+let initialTime = 30; // Game duration in seconds (can be 30 or 60)
+let timeLeft = initialTime;
 let timerInterval;
 let gameStarted = false;
 
 let shuffledWords = [];
 let wordIndex = 0;
 
-let typedCharacters = ''; // To keep track of characters typed for the current word
+let previousTypedLength = 0; // NEW: To track if a new character was typed (not backspace)
 
 
 // Function to shuffle the words array (Fisher-Yates algorithm)
@@ -35,139 +38,165 @@ function shuffleArray(array) {
     return array;
 }
 
-// Function to update the score display
-function updateScore() {
-    scoreDisplay.textContent = `Score: ${score}`;
+// MODIFIED: Function to update the WPM and Accuracy display
+function updateWPMAndAccuracy() {
+    const timeElapsed = initialTime - timeLeft; // Time actually passed during the game
+    let wpm = 0;
+    let accuracy = 0;
+
+    if (timeElapsed > 0) {
+        // WPM: Calculate using rawTypedCharacters (closer to MonkeyType's raw WPM)
+        wpm = Math.round((rawTypedCharacters / 5) / (timeElapsed / 60));
+        
+        // Accuracy: (Perfectly Correct Letters / Total Raw Typed Characters)
+        if (rawTypedCharacters > 0) {
+            accuracy = Math.round((correctLetters / rawTypedCharacters) * 100);
+        }
+    }
+
+    scoreDisplay.innerHTML = `WPM: ${wpm} | Acc: ${accuracy}%`;
 }
 
-// Function to update the timer display
+// Function to update the timer display (no changes here)
 function updateTimerDisplay() {
     timerDisplay.textContent = `Time: ${timeLeft}s`;
 }
 
-// MODIFIED: Function to display the current word (broken into characters) and upcoming words
+// Function to display the current word (broken into characters) and upcoming words (no changes here)
 function displayWords() {
-    // If we've gone through all shuffled words, reshuffle
     if (wordIndex >= shuffledWords.length) {
-        shuffledWords = shuffleArray([...words]); // Shuffle a fresh copy
+        shuffledWords = shuffleArray([...words]);
         wordIndex = 0;
     }
 
     currentWord = shuffledWords[wordIndex];
     
-    // Prepare the current word for character-by-character display
-    // Each character will be wrapped in a span with a unique ID
     let currentWordHtml = '';
     for (let i = 0; i < currentWord.length; i++) {
         currentWordHtml += `<span id="char-${i}">${currentWord[i]}</span>`;
     }
 
-    // Get next 10 words (or fewer if nearing end of list)
-    // Adjust slice to ensure we don't go out of bounds of shuffledWords
-    const nextWordsArray = shuffledWords.slice(wordIndex + 1, wordIndex + 1 + 10); // +10 for the next 10 words
+    const nextWordsArray = shuffledWords.slice(wordIndex + 1, wordIndex + 1 + 10);
     const nextWordsString = nextWordsArray.join(' ');
 
-    // Combine current word (with spans) and next words
-    wordDisplay.innerHTML = `${currentWordHtml} <span class="upcoming-text">${nextWordsString}</span>`;
+    wordDisplay.innerHTML = `${currentWordHtml}<span class="upcoming-text"> ${nextWordsString}</span>`; 
 
     feedbackMessage.textContent = '';
-    textInput.value = ''; // Clear input field
-    typedCharacters = ''; // Reset typed characters for the new word
+    textInput.value = '';
+    previousTypedLength = 0; // Reset for new word
     
-    // Highlight the first character if it exists
     const firstCharSpan = document.getElementById('char-0');
     if (firstCharSpan) {
-        firstCharSpan.classList.add('active-char'); // New class for the currently expected char
+        firstCharSpan.classList.add('active-char');
     }
 
-    wordIndex++; // Move to the next word for the next turn
+    wordIndex++;
 }
 
-// Function to start the game
+// MODIFIED: Function to start the game
 function startGame() {
-    if (gameStarted) return; // Prevent starting multiple games
+    if (gameStarted) return;
     gameStarted = true;
-    score = 0; // Reset score
-    timeLeft = 30; // Reset timer
-    updateScore(); // Update score display
-    shuffledWords = shuffleArray([...words]); // Shuffle words at game start
-    wordIndex = 0; // Reset index
-    displayWords(); // Display the first word (using new function)
-    textInput.focus(); // Ensure input field is focused
-    textInput.disabled = false; // Ensure input is enabled
+    rawTypedCharacters = 0; // Reset raw typed characters
+    correctLetters = 0; // Reset perfectly correct characters
+    timeLeft = initialTime; // Reset timer
+    previousTypedLength = 0; // Reset for initial input
 
-    // First, clear any existing timer to prevent multiple timers running
+    updateWPMAndAccuracy(); // Update display at start
+    shuffledWords = shuffleArray([...words]);
+    wordIndex = 0;
+    displayWords();
+    textInput.focus();
+    textInput.disabled = false;
+
     clearInterval(timerInterval); 
-
-    // Update the display immediately
     updateTimerDisplay(); 
 
-    // Set up a new interval to decrement time every second
     timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
+        updateWPMAndAccuracy(); // Update WPM & Accuracy every second
 
         if (timeLeft <= 0) {
-            endGame(); // Call endGame when time runs out
+            endGame();
         }
-    }, 1000); // 1000 milliseconds = 1 second
+    }, 1000);
 }
 
-// Function to end the game
+// MODIFIED: Function to end the game
 function endGame() {
-    clearInterval(timerInterval); // Stop the timer
+    clearInterval(timerInterval);
     gameStarted = false;
-    textInput.disabled = true; // Disable input field
-    wordDisplay.textContent = "Game Over!"; // Clear all words
-    feedbackMessage.textContent = `You scored ${score} words! Press any key to play again.`;
+    textInput.disabled = true;
+    wordDisplay.textContent = "Game Over!";
+    
+    // Final calculations for the end message
+    const finalTimeElapsed = initialTime - Math.max(0, timeLeft);
+    let finalWPM = 0;
+    let finalAccuracy = 0;
+
+    if (finalTimeElapsed > 0) {
+        finalWPM = Math.round((rawTypedCharacters / 5) / (finalTimeElapsed / 60));
+        if (rawTypedCharacters > 0) {
+            finalAccuracy = Math.round((correctLetters / rawTypedCharacters) * 100);
+        }
+    }
+
+    feedbackMessage.textContent = `Game Over! WPM: ${finalWPM} | Accuracy: ${finalAccuracy}% | Raw Typed: ${rawTypedCharacters} | Correct Letters: ${correctLetters}. Press any key to play again.`;
     feedbackMessage.style.color = 'blue'; 
     
-    // Set a timeout to clear the feedback message after a short delay
     setTimeout(() => {
         feedbackMessage.textContent = '';
-    }, 3000); // Clear after 3 seconds
+    }, 3000);
 }
 
 
-// Event Listener for user typing
+// MODIFIED: Event Listener for user typing
 textInput.addEventListener('input', () => {
-    // Start game on first input if not already started
     if (!gameStarted) {
         startGame();
     }
 
     const typedText = textInput.value;
-    typedCharacters = typedText; // Update typed characters for the current word
 
-    // Remove active-char from ALL characters first, then re-add to correct one
-    // This handles backspacing correctly too
-    for (let i = 0; i < currentWord.length; i++) {
-        const charSpan = document.getElementById(`char-${i}`);
-        if (charSpan) {
-            charSpan.classList.remove('active-char');
-        }
+    // Increment rawTypedCharacters if a new character was added (not backspace)
+    if (typedText.length > previousTypedLength) {
+        rawTypedCharacters++;
     }
+    previousTypedLength = typedText.length; // Update for next comparison
 
-    let isCorrectSoFar = true;
+    // Character highlighting logic
+    let isCurrentWordPartiallyCorrect = true; // Flag for correct prefix
+    let currentWordPerfectlyTyped = false; // Flag if current word is typed perfectly so far
+
     for (let i = 0; i < currentWord.length; i++) {
         const charSpan = document.getElementById(`char-${i}`);
-        if (!charSpan) continue; // Should not happen if rendering correctly
+        if (!charSpan) continue;
 
-        if (i < typedText.length) { // If this character has been typed
+        if (i < typedText.length) {
+            // Char is typed
             if (typedText[i] === currentWord[i]) {
                 charSpan.classList.add('correct-char');
                 charSpan.classList.remove('incorrect-char');
             } else {
                 charSpan.classList.add('incorrect-char');
                 charSpan.classList.remove('correct-char');
-                isCorrectSoFar = false; // Mark as incorrect
+                isCurrentWordPartiallyCorrect = false; // An incorrect character was found
             }
-        } else { // If this character has not been typed yet (cleared or not reached)
-            charSpan.classList.remove('correct-char', 'incorrect-char');
+        } else {
+            // Char not yet typed or was backspaced over
+            charSpan.classList.remove('correct-char', 'incorrect-char', 'active-char');
         }
     }
     
-    // Highlight the next expected character (if not at end of word)
+    // Update active char highlight
+    // Remove active-char from ALL characters first, then re-add to correct one
+    for (let i = 0; i < currentWord.length; i++) {
+        const charSpan = document.getElementById(`char-${i}`);
+        if (charSpan) {
+            charSpan.classList.remove('active-char');
+        }
+    }
     const nextCharIndex = typedText.length;
     const nextCharSpan = document.getElementById(`char-${nextCharIndex}`);
     if (nextCharSpan) {
@@ -180,17 +209,17 @@ textInput.addEventListener('input', () => {
         if (typedText === currentWord) {
             feedbackMessage.textContent = 'Correct!';
             feedbackMessage.style.color = 'green';
-            score++; // Increment score for correct word
-            updateScore(); // Update score display
+            correctLetters += currentWord.length; // Add *all* letters of the correct word to total correct letters
+            updateWPMAndAccuracy(); // Update WPM and Accuracy
             displayWords(); // Get a new word and update display
         } else {
-            // Word is typed but incorrect, user must correct
             feedbackMessage.textContent = 'Incorrect word!';
             feedbackMessage.style.color = 'red';
+            // No update to correctLetters if word is wrong; user must correct
         }
     } else {
         // Word is not fully typed yet
-        if (isCorrectSoFar) { // All typed chars are correct so far
+        if (isCurrentWordPartiallyCorrect) { // All typed chars are correct so far for current word
             feedbackMessage.textContent = 'Keep typing...';
             feedbackMessage.style.color = '#555';
         } else { // There's an incorrect char already typed
@@ -198,11 +227,11 @@ textInput.addEventListener('input', () => {
             feedbackMessage.style.color = 'red';
         }
     }
+    updateWPMAndAccuracy(); // Update WPM and accuracy after every keystroke
 });
 
 // Event Listener to restart game after it ends (using keydown for broader detection)
 textInput.addEventListener('keydown', (event) => {
-    // Only restart if game is NOT started, time is over, and a non-modifier/non-repeat key is pressed
     if (!gameStarted && timeLeft <= 0 && !event.repeat && event.key !== ' ' && event.key !== 'Shift' && event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Meta' && event.key !== 'Backspace') {
         startGame();
     }
@@ -210,7 +239,6 @@ textInput.addEventListener('keydown', (event) => {
 
 
 // Initial setup when the script loads
-updateScore(); // Show initial score (0)
+updateWPMAndAccuracy(); // Show initial WPM (0) and Accuracy (0%)
 updateTimerDisplay(); // Show initial time (30s)
-// IMPORTANT: KEEP THIS LINE COMMENTED OUT OR DELETED: textInput.disabled = true;
 wordDisplay.textContent = "Type to start game!"; // Initial message for the user
