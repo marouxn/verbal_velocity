@@ -51,7 +51,7 @@ h1 {
     text-align: center;
 }
 
-/* MODIFIED: Styles for the combined word display area */
+/* Styles for the combined word display area */
 #word-display {
     background-color: #f0f0f0;
     border: 1px solid #ccc;
@@ -68,11 +68,38 @@ h1 {
     overflow-wrap: break-word; /* Break long words if necessary */
 }
 
-/* NEW: Style for the current word being typed */
-.highlight {
-    color: #007bff; /* A prominent color for the current word */
-    font-weight: bold;
+/* Styles for individual characters within #word-display */
+#word-display span {
+    transition: color 0.05s ease-out, background-color 0.05s ease-out; /* Smooth transition for color changes */
+    padding: 0 1px; /* Small padding for visual separation */
+    border-radius: 2px; /* Slight rounding for background */
 }
+
+#word-display span.correct-char {
+    color: #28a745; /* Green for correct letters */
+    /* background-color: #e6ffe6; */ /* Optional: light green background */
+}
+
+#word-display span.incorrect-char {
+    color: #dc3545; /* Red for incorrect letters */
+    /* background-color: #ffe6e6; */ /* Optional: light red background */
+    text-decoration: underline wavy red 2px; /* Optional: wavy underline for incorrect */
+}
+
+#word-display span.active-char {
+    color: #007bff; /* Blue for the active (next expected) character */
+    background-color: #cfe2ff; /* Light blue background for active */
+    font-weight: bold;
+    border-bottom: 2px solid #007bff; /* Subtle underline */
+}
+
+/* Style for the upcoming words text, to differentiate slightly from current word */
+#word-display .upcoming-text {
+    color: #888; /* Dim the upcoming text */
+    font-weight: normal; /* No bold for upcoming */
+    /* Removed: margin-left: 0.5em; - Spacing now handled in JS */
+}
+
 
 /* Styles for the text input field */
 #text-input {
